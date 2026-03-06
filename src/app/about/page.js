@@ -59,25 +59,25 @@ export default function AboutPage() {
               <ScrollReveal delay={2}>
                 <div className="space-y-6 text-[15px] text-muted-foreground leading-[1.9]">
                   <p>
-                    I&apos;m Alina Vladyka — a professional photographer based in Toronto GTA and
-                    the Kitchener-Waterloo region of Ontario, Canada. Photography, for me, has
-                    always been about more than what the eye can see. It&apos;s about preserving
-                    what the heart feels.
+                    I&apos;m Alina — originally from Ukraine and living in Canada for the past
+                    four years. I&apos;m also a mom to a beautiful daughter who often becomes my
+                    little muse. She has grown up surrounded by cameras and soft light, and I
+                    love that we get to share this creative world together.
                   </p>
                   <p>
-                    My work spans weddings, portrait sessions, couples, family photography,
-                    events, and lifestyle photography. Whatever the occasion, I bring the
-                    same commitment to craft, connection, and storytelling.
+                    My photography philosophy: <em>cinematic moments — where real feelings
+                    become timeless photos.</em> I believe the most meaningful images happen
+                    when people stop posing and simply feel.
                   </p>
                   <p>
-                    My style is characterized by a timeless aesthetic, natural light, and a
-                    warm, relaxed approach that puts my clients completely at ease. I love
-                    the quiet moments between the posed ones — the laughter, the stolen
-                    glances, the details that make your story uniquely yours.
+                    Beyond still photography, I also offer short cinematic highlight films so
+                    you can relive your session in motion — something to watch, feel, and
+                    keep forever.
                   </p>
                   <p>
-                    I serve clients across Toronto GTA, Kitchener-Waterloo, and the
-                    surrounding region. I also travel for destination sessions and elopements.
+                    I serve clients across Kitchener-Waterloo, Toronto GTA, and the surrounding
+                    region of Ontario. Personal brand, portrait, family, couples — if you need
+                    beautiful images that tell your story, let&apos;s create something together.
                   </p>
                 </div>
               </ScrollReveal>
@@ -107,9 +107,9 @@ export default function AboutPage() {
             {/* Thin decorative rule */}
             <div className="w-px h-12 bg-border mx-auto mb-10" />
             <blockquote className="font-heading font-light text-3xl lg:text-4xl italic text-foreground leading-snug mb-10">
-              &ldquo;Photography is the art of freezing time<br />
-              without losing the warmth that made the<br />
-              moment worth remembering.&rdquo;
+              &ldquo;Cinematic moments —<br />
+              where real feelings become<br />
+              timeless photos.&rdquo;
             </blockquote>
             <div className="w-px h-12 bg-border mx-auto mb-10" />
           </ScrollReveal>

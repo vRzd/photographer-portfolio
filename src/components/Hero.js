@@ -9,12 +9,12 @@ export default function Hero() {
       {/* Background image */}
       <div className="absolute inset-0">
         <Image
-          src="https://picsum.photos/seed/hero-alina/1920/1080"
+          src="/instagram/ig20.jpg"
           alt="Photography by Alina Vladyka"
           fill
           priority
           sizes="100vw"
-          className="object-cover hero-fade"
+          className="object-cover object-center hero-fade"
         />
       </div>
 
