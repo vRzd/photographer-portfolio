@@ -20,6 +20,7 @@ export default function PortfolioGrid({ images }) {
   const [shuffleKey, setShuffleKey] = useState(0);
   const [shuffledOrder, setShuffledOrder] = useState(null);
   const [spinning, setSpinning] = useState(false);
+  const [exiting, setExiting] = useState(false);
 
   const baseFiltered =
     activeCategory === 'all'
@@ -36,8 +37,14 @@ export default function PortfolioGrid({ images }) {
   };
 
   const handleCategory = (slug) => {
-    setActiveCategory(slug);
-    setShuffledOrder(null);
+    if (slug === activeCategory) return;
+    setExiting(true);
+    setTimeout(() => {
+      setActiveCategory(slug);
+      setShuffledOrder(null);
+      setShuffleKey(k => k + 1);
+      setExiting(false);
+    }, 200);
   };
 
   const openLightbox = useCallback((index) => setLightboxIndex(index), []);
@@ -79,7 +86,7 @@ export default function PortfolioGrid({ images }) {
       </div>
 
       {/* Masonry grid */}
-      <div key={shuffleKey} className="columns-1 sm:columns-2 lg:columns-3 gap-3 lg:gap-4">
+      <div key={shuffleKey} className={`columns-1 sm:columns-2 lg:columns-3 gap-3 lg:gap-4 ${exiting ? 'portfolio-grid-exit' : ''}`}>
         {filtered.map((image, index) => (
           <div
             key={`${activeCategory}-${image.id}-${shuffleKey}`}

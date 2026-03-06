@@ -104,13 +104,23 @@ body {
 .hero-slide-3 { animation: slideUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.9s both; }
 .scroll-indicator { animation: scrollBounce 2s ease-in-out infinite; }
 
-/* Portfolio shuffle — stagger fade-in */
+/* Portfolio — item enter */
 @keyframes portfolioItemIn {
   from { opacity: 0; transform: translateY(16px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
 .portfolio-item {
   animation: portfolioItemIn 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Portfolio — grid exit (whole grid fades out before category switch) */
+@keyframes portfolioGridOut {
+  from { opacity: 1; transform: translateY(0);   }
+  to   { opacity: 0; transform: translateY(-10px); }
+}
+.portfolio-grid-exit {
+  animation: portfolioGridOut 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
 }
 
 /* Shuffle button spin */
