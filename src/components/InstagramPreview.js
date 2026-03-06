@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { getInstagramPreviews } from '@/lib/imageService';
+import ScrollReveal from '@/components/ScrollReveal';
 
 export default function InstagramPreview() {
   const previews = getInstagramPreviews();
@@ -8,7 +9,7 @@ export default function InstagramPreview() {
     <section className="py-36 lg:py-48 px-6 bg-surface border-y border-border">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-16 lg:mb-20 reveal">
+        <ScrollReveal className="text-center mb-16 lg:mb-20">
           <p className="text-[10px] uppercase tracking-[0.4em] text-gold mb-4">Follow Along</p>
           <h2 className="font-heading font-light text-4xl lg:text-5xl italic text-foreground mb-3">
             @alina_vladyka
@@ -16,10 +17,11 @@ export default function InstagramPreview() {
           <p className="text-[14px] text-muted-foreground tracking-wide">
             Behind the lens on Instagram
           </p>
-        </div>
+        </ScrollReveal>
 
         {/* 3×3 grid */}
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:gap-2.5 reveal">
+        <ScrollReveal delay={1}>
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:gap-2.5">
           {previews.map((photo) => (
             <a
               key={photo.id}
@@ -56,9 +58,10 @@ export default function InstagramPreview() {
             </a>
           ))}
         </div>
+        </ScrollReveal>
 
         {/* Follow link */}
-        <div className="text-center mt-12 reveal">
+        <ScrollReveal delay={2} className="text-center mt-12">
           <a
             href="https://instagram.com/alina_vladyka"
             target="_blank"
@@ -72,7 +75,7 @@ export default function InstagramPreview() {
             </svg>
             Follow on Instagram
           </a>
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   );
