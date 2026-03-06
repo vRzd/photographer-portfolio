@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useTransition } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import Lightbox from './Lightbox';
 import { categories } from '@/lib/imageData';
 import {
@@ -21,9 +22,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-function SortablePhoto({ image, index, onOpen, isDraggingAny }) {
+function SortablePhoto({ image, index, onOpen, isDraggingAny, isAdmin }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: image.id });
+    useSortable({ id: image.id, disabled: !isAdmin });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -36,14 +37,12 @@ function SortablePhoto({ image, index, onOpen, isDraggingAny }) {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className="portfolio-item group relative overflow-hidden cursor-grab active:cursor-grabbing touch-none"
+      {...(isAdmin ? { ...attributes, ...listeners } : {})}
+      className={`portfolio-item group relative overflow-hidden touch-none ${
+        isAdmin ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
+      }`}
     >
-      <div
-        className="overflow-hidden"
-        onClick={() => { if (!isDraggingAny) onOpen(index); }}
-      >
+      <div onClick={() => { if (!isDraggingAny) onOpen(index); }}>
         <Image
           src={image.src}
           alt={image.alt}
@@ -66,27 +65,41 @@ function SortablePhoto({ image, index, onOpen, isDraggingAny }) {
   );
 }
 
-export default function PortfolioGrid({ images }) {
+export default function PortfolioGrid({ images, isAdmin }) {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [lightboxIndex, setLightboxIndex] = useState(null);
-  const [exiting, setExiting] = useState(false);
-  const [activeId, setActiveId] = useState(null);
-
-  // Per-category custom order stored as arrays of image ids
-  const [orders, setOrders] = useState({});
+  const [lightboxIndex, setLightboxIndex]   = useState(null);
+  const [exiting, setExiting]               = useState(false);
+  const [activeId, setActiveId]             = useState(null);
+  const [saving, setSaving]                 = useState(false);
+  const [orders, setOrders]                 = useState({});  // category → id[]
+  const router = useRouter();
+  const [, startTransition] = useTransition();
 
   const baseFiltered =
     activeCategory === 'all'
       ? images
-      : images.filter((img) => img.category === activeCategory);
+      : images.filter(img => img.category === activeCategory);
 
-  // Apply stored order for this category if it exists
+  // Apply stored order
   const orderedIds = orders[activeCategory];
   const filtered = orderedIds
     ? orderedIds.map(id => baseFiltered.find(img => img.id === id)).filter(Boolean)
     : baseFiltered;
 
   const activeImage = activeId != null ? filtered.find(img => img.id === activeId) : null;
+
+  // Load saved order for the active category
+  useEffect(() => {
+    if (orders[activeCategory] !== undefined) return;
+    fetch(`/api/photo-order?category=${activeCategory}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setOrders(prev => ({ ...prev, [activeCategory]: data }));
+        }
+      })
+      .catch(() => {});
+  }, [activeCategory]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -95,16 +108,31 @@ export default function PortfolioGrid({ images }) {
 
   const handleDragStart = ({ active }) => setActiveId(active.id);
 
-  const handleDragEnd = ({ active, over }) => {
+  const handleDragEnd = async ({ active, over }) => {
     setActiveId(null);
     if (!over || active.id === over.id) return;
+
     const oldIndex = filtered.findIndex(img => img.id === active.id);
     const newIndex = filtered.findIndex(img => img.id === over.id);
     const reordered = arrayMove(filtered, oldIndex, newIndex);
-    setOrders(prev => ({ ...prev, [activeCategory]: reordered.map(img => img.id) }));
+    const newIds = reordered.map(img => img.id);
+
+    setOrders(prev => ({ ...prev, [activeCategory]: newIds }));
+
+    setSaving(true);
+    try {
+      await fetch('/api/photo-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: activeCategory, order: newIds }),
+      });
+      startTransition(() => router.refresh());
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const openLightbox  = useCallback((i) => setLightboxIndex(i), []);
+  const openLightbox  = useCallback(i => setLightboxIndex(i), []);
   const closeLightbox = useCallback(() => setLightboxIndex(null), []);
 
   const handleCategory = (slug) => {
@@ -116,11 +144,16 @@ export default function PortfolioGrid({ images }) {
     }, 200);
   };
 
+  const logout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    startTransition(() => router.refresh());
+  };
+
   return (
     <div>
       {/* Category filter */}
       <div className="flex flex-wrap gap-x-6 gap-y-3 justify-center items-center mb-12 lg:mb-16">
-        {categories.map((cat) => (
+        {categories.map(cat => (
           <button
             key={cat.slug}
             onClick={() => handleCategory(cat.slug)}
@@ -135,10 +168,31 @@ export default function PortfolioGrid({ images }) {
         ))}
       </div>
 
-      {/* Drag hint */}
-      <p className="text-center text-[11px] text-muted-foreground/50 uppercase tracking-widest mb-8 -mt-4">
-        Drag to reorder
-      </p>
+      {/* Admin bar */}
+      {isAdmin ? (
+        <div className="flex items-center justify-between mb-8 px-1">
+          <p className="text-[11px] text-gold uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold inline-block" />
+            Admin — drag to reorder
+            {saving && <span className="text-muted-foreground ml-2">Saving…</span>}
+          </p>
+          <button
+            onClick={logout}
+            className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
+      ) : (
+        <div className="flex justify-end mb-8 px-1">
+          <a
+            href="/admin/login"
+            className="text-[10px] uppercase tracking-widest text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+          >
+            Admin
+          </a>
+        </div>
+      )}
 
       {/* Sortable grid */}
       <DndContext
@@ -156,6 +210,7 @@ export default function PortfolioGrid({ images }) {
                   index={index}
                   onOpen={openLightbox}
                   isDraggingAny={activeId != null}
+                  isAdmin={isAdmin}
                 />
               </div>
             ))}

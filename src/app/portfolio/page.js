@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers';
+import { verifyToken, COOKIE_NAME } from '@/lib/auth';
 import PortfolioGrid from '@/components/PortfolioGrid';
 import { getImages } from '@/lib/imageService';
 
@@ -9,6 +11,8 @@ export const metadata = {
 
 export default async function PortfolioPage() {
   const images = await getImages();
+  const jar = await cookies();
+  const isAdmin = verifyToken(jar.get(COOKIE_NAME)?.value);
 
   return (
     <div className="min-h-screen">
@@ -26,7 +30,7 @@ export default async function PortfolioPage() {
 
       {/* Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-        <PortfolioGrid images={images} />
+        <PortfolioGrid images={images} isAdmin={isAdmin} />
       </div>
     </div>
   );
