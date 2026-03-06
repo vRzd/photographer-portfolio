@@ -5,26 +5,49 @@ import Image from 'next/image';
 import Lightbox from './Lightbox';
 import { categories } from '@/lib/imageData';
 
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default function PortfolioGrid({ images }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [shuffleKey, setShuffleKey] = useState(0);
+  const [shuffledOrder, setShuffledOrder] = useState(null);
 
-  const filtered =
+  const baseFiltered =
     activeCategory === 'all'
       ? images
       : images.filter((img) => img.category === activeCategory);
+
+  const filtered = shuffledOrder ?? baseFiltered;
+
+  const handleShuffle = () => {
+    setShuffledOrder(shuffle(baseFiltered));
+    setShuffleKey(k => k + 1);
+  };
+
+  const handleCategory = (slug) => {
+    setActiveCategory(slug);
+    setShuffledOrder(null);
+  };
 
   const openLightbox = useCallback((index) => setLightboxIndex(index), []);
   const closeLightbox = useCallback(() => setLightboxIndex(null), []);
 
   return (
     <div>
-      {/* Category filter */}
-      <div className="flex flex-wrap gap-x-6 gap-y-3 justify-center mb-12 lg:mb-16">
+      {/* Category filter + shuffle */}
+      <div className="flex flex-wrap gap-x-6 gap-y-3 justify-center items-center mb-12 lg:mb-16">
         {categories.map((cat) => (
           <button
             key={cat.slug}
-            onClick={() => setActiveCategory(cat.slug)}
+            onClick={() => handleCategory(cat.slug)}
             className={`text-xs uppercase tracking-[0.18em] pb-1 transition-all duration-300 border-b ${
               activeCategory === cat.slug
                 ? 'text-gold border-gold'
@@ -34,10 +57,26 @@ export default function PortfolioGrid({ images }) {
             {cat.label}
           </button>
         ))}
+
+        <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
+
+        <button
+          onClick={handleShuffle}
+          title="Shuffle photos"
+          className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] pb-1 border-b border-transparent text-muted-foreground hover:text-foreground hover:border-border transition-all duration-300"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="16 3 21 3 21 8" />
+            <line x1="4" y1="20" x2="21" y2="3" />
+            <polyline points="21 16 21 21 16 21" />
+            <line x1="15" y1="15" x2="21" y2="21" />
+          </svg>
+          Shuffle
+        </button>
       </div>
 
       {/* Masonry grid */}
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 lg:gap-4">
+      <div key={shuffleKey} className="columns-1 sm:columns-2 lg:columns-3 gap-3 lg:gap-4">
         {filtered.map((image, index) => (
           <div
             key={`${activeCategory}-${image.id}`}
