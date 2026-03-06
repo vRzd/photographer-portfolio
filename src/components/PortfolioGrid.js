@@ -19,6 +19,7 @@ export default function PortfolioGrid({ images }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [shuffleKey, setShuffleKey] = useState(0);
   const [shuffledOrder, setShuffledOrder] = useState(null);
+  const [spinning, setSpinning] = useState(false);
 
   const baseFiltered =
     activeCategory === 'all'
@@ -28,8 +29,10 @@ export default function PortfolioGrid({ images }) {
   const filtered = shuffledOrder ?? baseFiltered;
 
   const handleShuffle = () => {
+    setSpinning(true);
     setShuffledOrder(shuffle(baseFiltered));
     setShuffleKey(k => k + 1);
+    setTimeout(() => setSpinning(false), 500);
   };
 
   const handleCategory = (slug) => {
@@ -65,7 +68,7 @@ export default function PortfolioGrid({ images }) {
           title="Shuffle photos"
           className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] pb-1 border-b border-transparent text-muted-foreground hover:text-foreground hover:border-border transition-all duration-300"
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={spinning ? 'shuffle-spin' : ''}>
             <polyline points="16 3 21 3 21 8" />
             <line x1="4" y1="20" x2="21" y2="3" />
             <polyline points="21 16 21 21 16 21" />
@@ -79,8 +82,9 @@ export default function PortfolioGrid({ images }) {
       <div key={shuffleKey} className="columns-1 sm:columns-2 lg:columns-3 gap-3 lg:gap-4">
         {filtered.map((image, index) => (
           <div
-            key={`${activeCategory}-${image.id}`}
-            className="break-inside-avoid mb-3 lg:mb-4 group cursor-pointer overflow-hidden relative"
+            key={`${activeCategory}-${image.id}-${shuffleKey}`}
+            className="portfolio-item break-inside-avoid mb-3 lg:mb-4 group cursor-pointer overflow-hidden relative"
+            style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
             onClick={() => openLightbox(index)}
           >
             <div className="overflow-hidden">
